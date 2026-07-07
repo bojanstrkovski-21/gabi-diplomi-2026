@@ -1,0 +1,2 @@
+- [Diploma A3 conversion project](project_diploma_a3_conversion.md) — status of which diploma docx files have been converted A4→A3, which remain
+- [Docx shape A3 conversion method](feedback_docx_a3_shape_conversion_method.md) — validated XML+COM technique for repositioning floating text boxes onto a new layout

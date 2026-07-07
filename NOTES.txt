@@ -1,0 +1,129 @@
+================================================================
+DIPLOMA A3 LAYOUT - WHAT WAS DONE
+================================================================
+
+SOURCE FILE:
+  "New folder\диплома државна матура (1).docx"
+  - 3-page A4 portrait document
+  - 30 floating shapes (text boxes + grouped border lines)
+  - Uses both DrawingML and VML formats internally
+
+OUTPUT FILE:
+  диплома_А3_v2.docx
+  - A3 landscape (420mm x 297mm)
+  - 2 pages
+  - All 30 shapes preserved and fully editable
+
+LAYOUT:
+  A3 Page 1 LEFT  = source page 1  (student personal data)
+  A3 Page 1 RIGHT = source page 2  (grades / school info)
+  A3 Page 2 LEFT  = source page 3  (stamp / verification text)
+  A3 Page 2 RIGHT = empty
+
+HOW IT WAS BUILT (create_a3_xml.py):
+  1. Read the .docx as a ZIP file and parsed document.xml with lxml
+  2. Found all 30 drawing runs across 19 paragraphs
+     - Page 1 shapes: paragraphs 10, 13, 29, 32, 34
+     - Page 2 shapes: paragraphs 44, 48, 50, 52, 54, 56, 60,
+                      65, 70, 72, 74, 78, 80, 88
+     - Page 3 shapes: paragraph 91
+  3. For each shape, applied pre-verified absolute positions:
+     - Page 1 shapes: kept original X/Y coordinates
+     - Page 2 shapes: shifted right by 595.35pt (one A4 width)
+     - Page 3 shapes: placed on A3 page 2, same X/Y
+  4. Updated both DrawingML (wp:anchor positionH/positionV)
+     and VML fallback (v:shape/v:group margin-left/margin-top)
+     to relativeFrom="page" with absolute coordinates
+  5. Built new document body:
+     - Para 1: all 29 page-1 shapes anchored here
+     - Para 2: page break (creates A3 page 2)
+     - Para 3: the 1 page-3 shape anchored here
+  6. Set sectPr to A3 landscape (23811 x 16838 twips),
+     margins ~1mm on all sides
+  7. Wrote new document.xml back into a copy of the source .docx
+
+TO EDIT DATA:
+  Open диплома_А3_v2.docx in Word.
+  Click any text field (name, date, grade, city, etc.)
+  and type directly - all are live editable text boxes.
+
+FILES IN THIS FOLDER:
+  create_a3_xml.py       - Python script that built the A3 file
+  диплома_А3_v2.docx     - Final output (USE THIS)
+  диплома_А3.docx        - Earlier attempt (copy-paste method, broken)
+  source_temp.docx       - Temporary conversion of the original .doc
+================================================================
+
+================================================================
+DOCUMENT 2: УЧИЛИШНА СТРУЧНА МАТУРА - A3 LAYOUT
+================================================================
+
+SOURCE FILE:
+  "New folder\училишна стручна матура.docx"
+  - 3-page A4 portrait document
+  - 26 floating text box shapes
+  - Same page setup as document 1 (595.35 x 842.0 pt,
+    margins left=89.85 top=27.0)
+
+OUTPUT FILE:
+  училишна_стручна_матура_А3.docx
+  - A3 landscape (420mm x 297mm)
+  - 2 pages
+  - All 26 shapes preserved and fully editable
+
+LAYOUT (same scheme as document 1):
+  A3 Page 1 LEFT  = source page 1  (school header / student data)
+  A3 Page 1 RIGHT = source page 2  (grades / school info)
+  A3 Page 2 LEFT  = source page 3  (ministry stamp / verification text)
+  A3 Page 2 RIGHT = empty
+
+HOW IT WAS BUILT (create_a3_strucna.py):
+  1. Used Word COM (win32com) to dump all 26 shapes: source page,
+     RelativeHorizontalPosition/RelativeVerticalPosition, Left/Top.
+  2. Parsed document.xml with lxml to list all 26 anchored drawing
+     runs in true document order, extracting each textbox's text.
+  3. Matched XML-order shapes to COM shape data by exact text
+     (2 pairs of duplicate text were disambiguated by spatial
+     position - e.g. two shapes both reading "Битола").
+     - Page 1 shapes: paragraphs 9, 12, 25 (11 shapes)
+     - Page 2 shapes: paragraphs 37, 38, 44, 50, 52, 57, 64, 66,
+                      72, 74, 82 (13 shapes)
+     - Page 3 shapes: paragraphs 126, 128 (2 shapes)
+  4. Computed absolute page coordinates (adding page margins where
+     RelativeHorizontalPosition/Vertical = margin-relative), then:
+     - Page 1 shapes: kept original X/Y
+     - Page 2 shapes: shifted right by 595.35pt (one A4 width)
+     - Page 3 shapes: placed on A3 page 2, same X/Y
+  5. Updated DrawingML (wp:anchor) and VML fallback to
+     relativeFrom="page" with absolute coordinates.
+  6. Built new document body (same 4-paragraph structure as doc 1)
+     and A3 landscape sectPr.
+  7. Verified output via Word COM: 2 pages, 26 shapes, correct
+     per-shape page/position.
+
+TO EDIT DATA:
+  Open училишна_стручна_матура_А3.docx in Word.
+  Click any text field and type directly - all are live editable
+  text boxes.
+
+FILES:
+  create_a3_strucna.py          - Python script that built this file
+  училишна_стручна_матура_А3.docx - Final output (USE THIS)
+================================================================
+
+================================================================
+NEXT STEPS / REMAINING WORK
+================================================================
+NOT YET CONVERTED:
+  "New folder\Diploma Drzavna strucna  matura  IV1.docx"
+  - Apply the same method used for the two documents above:
+    1. Dump shapes via Word COM (page, RelativeH/VPosition, Left/Top, text)
+    2. Parse document.xml with lxml, list anchored runs in true
+       document order, extract text
+    3. Match XML-order shapes to COM data by text (disambiguate
+       duplicates by spatial position)
+    4. Compute absolute positions, shift source-page-2 shapes right
+       by 595.35pt, keep source-page-1 and source-page-3 as-is
+    5. Write new document.xml, verify output via Word COM
+  - Copy create_a3_strucna.py as a starting template.
+================================================================
