@@ -112,18 +112,97 @@ FILES:
 ================================================================
 
 ================================================================
+DOCUMENT 3: ДРЖАВНА СТРУЧНА МАТУРА (drzavna strucna.docx) - A3 LAYOUT
+================================================================
+
+SOURCE FILE:
+  "New folder\drzavna strucna.docx"
+  - 4-page A4 portrait document, but structurally very different from
+    documents 1 and 2: almost entirely NORMAL FLOWING TEXT + one
+    grades table, split across 3 pre-existing Word sections (one per
+    source page), plus 2 stray trailing paragraphs ("ДИПЛОМА" / "ЗА
+    ДРЖАВНА СТРУЧНА МАТУРА") that started an unwanted 4th page.
+  - Only ONE floating shape in the whole document: the "Директор"
+    signature text box (RelativeHorizontalPosition=Page,
+    RelativeVerticalPosition=Paragraph), anchored on source page 2.
+  - Per user decision: the stray 4th page is dropped; only the first
+    3 pages are used, same scheme as documents 1 and 2.
+
+OUTPUT FILE:
+  диплома_државна_стручна_матура_А3.docx
+  - A3 landscape (420mm x 297mm), 2 pages, the 1 shape preserved and
+    fully editable; all other content is normal live text/table
+    (never was a shape, so nothing to preserve there either).
+
+LAYOUT (same scheme as documents 1 and 2):
+  A3 Page 1 LEFT  = source page 1 (personal data)
+  A3 Page 1 RIGHT = source page 2 (grades table + signatures)
+  A3 Page 2 LEFT  = source page 3 (verification footer)
+  A3 Page 2 RIGHT = empty
+
+HOW IT WAS BUILT (create_a3_drzavna_strucna.py) - a DIFFERENT technique
+than documents 1/2, since there are no per-field floating text boxes
+to reposition, just flowing text across 3 sections:
+  1. Found the document already had 3 sections (one sectPr per source
+     page, each carrying that page's own pgMar) plus 2 stray trailing
+     paragraphs after the 3rd section's content - confirmed via
+     Word COM (doc.Paragraphs / doc.Sections) and lxml body-children
+     dump (paragraph indices 12 and 27 carry sectPr; indices 34-35 are
+     the stray paragraphs; index 36 is the body-final sectPr).
+  2. Source page 1 + page 2 are merged into ONE new section using a
+     genuine unequal-width w:cols 2-column layout (needs BOTH
+     w:num="2" AND w:equalWidth="0" - Word silently treats the section
+     as single-column and turns column breaks into page breaks if
+     w:num is omitted, even with 2 <w:col> children present and
+     equalWidth=0 - this cost one failed verify-via-COM round trip).
+     Column widths/gutter were computed from each source page's own
+     original margins (page1 left/right vs page2 left/right, which
+     differ slightly) so each column reproduces that page's original
+     usable text width exactly. This is algebraically identical to
+     the simpler "shift column 2 by +595pt (one A4 width)" rule from
+     documents 1/2 - verified by hand before implementing.
+  3. A w:br type="column" was inserted as the first run of source
+     page 2's first paragraph to force it into column 2.
+  4. Source page 1's top margin (1518 twips) is smaller than source
+     page 2's (2574 twips); since a section has only one top margin,
+     the smaller was used for the merged section, and the 1056-twip
+     difference was added as extra "space before" on page 2's first
+     paragraph - reproducing page 2's original vertical start without
+     touching the shape's Y at all.
+  5. The "Директор" shape's Y is RelativeVerticalPosition=Paragraph,
+     so it automatically rides along with its anchor paragraph's
+     reflow (no Y edit needed). Its X (RelativeHorizontalPosition=
+     Page) was shifted +595pt (=7,556,500 EMU) in both the DrawingML
+     wp:anchor posOffset and the VML v:shape style margin-left.
+  6. Source page 3 was left on its own final section, just widened to
+     A3 with a larger right margin (left margin and all content
+     unchanged) so it keeps its original usable text width and only
+     occupies the left half of the sheet - no shape work needed there
+     since page 3 has none.
+  7. The 2 stray trailing paragraphs were deleted from the body.
+  8. Verified via Word COM: 2 pages, 1 shape on page 1 at the shifted
+     X, section 1 TextColumns.Count==2 with the expected widths/gutter,
+     then rendered to PDF (via ExportAsFixedFormat + PyMuPDF) and
+     visually confirmed both A3 sheets match the intended layout.
+
+TO EDIT DATA:
+  Open диплома_државна_стручна_матура_А3.docx in Word.
+  Click any text field and type directly - all are live editable text
+  (plus the one live "Директор" text box).
+
+FILES:
+  create_a3_drzavna_strucna.py       - Python script that built this file
+  диплома_државна_стручна_матура_А3.docx - Final output (USE THIS)
+
+NOTE: "New folder\Diploma Drzavna strucna  matura  IV1.docx" is a
+DIFFERENT kind of artifact - a filled-in real-student data overlay (2
+pages, 15 shapes, no printed field labels), not a blank template. It
+was inspected and ruled out as the conversion target for this session.
+================================================================
+
+================================================================
 NEXT STEPS / REMAINING WORK
 ================================================================
-NOT YET CONVERTED:
-  "New folder\Diploma Drzavna strucna  matura  IV1.docx"
-  - Apply the same method used for the two documents above:
-    1. Dump shapes via Word COM (page, RelativeH/VPosition, Left/Top, text)
-    2. Parse document.xml with lxml, list anchored runs in true
-       document order, extract text
-    3. Match XML-order shapes to COM data by text (disambiguate
-       duplicates by spatial position)
-    4. Compute absolute positions, shift source-page-2 shapes right
-       by 595.35pt, keep source-page-1 and source-page-3 as-is
-    5. Write new document.xml, verify output via Word COM
-  - Copy create_a3_strucna.py as a starting template.
+All 3 known blank diploma templates in "New folder\" are converted.
+No further documents identified as of this writing.
 ================================================================
